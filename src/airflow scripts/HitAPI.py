@@ -11,7 +11,7 @@ import requests
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"/home/airflow/gcs/data/mykey.json"
 
 def publish(client, pubsub_topic, data_lines):
-    """Publish to the given pubsub topic."""
+    
     messages = []
     for line in data_lines:
         messages.append({'data': line})
