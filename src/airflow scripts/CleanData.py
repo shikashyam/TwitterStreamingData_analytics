@@ -1,4 +1,4 @@
 import pandas as pd
 
 def CleanData():
-    print('Cleaning Data')
+    print('Airflow job completed')
