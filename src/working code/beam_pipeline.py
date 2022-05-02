@@ -24,7 +24,7 @@ def del_unwanted_cols(data):
     del data['user_name']
     return data
 
-def cleantext(data):
+def clean_tweets(data):
     
     data['text'] = data['text'].lower()
     data['text'] = re.sub(r"rt[\s]+", "", data['text']) # Remove Retweets
