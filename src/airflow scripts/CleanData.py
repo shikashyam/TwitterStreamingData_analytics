@@ -23,5 +23,5 @@ def CleanData():
             gcsPath = 'gs://beampipeline1/MyTemplate'
     ).execute()
 
-    print('Job Triggered : '+ str(result)
-
+    print('Job Triggered')
+    print(result)
