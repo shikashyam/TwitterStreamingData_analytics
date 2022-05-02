@@ -31,7 +31,7 @@ class TweetStreamListener(Stream):
     A listener handles tweets that are received from the stream.
     This listener dumps the tweets into a PubSub topic
     """
-    
+    client = client
     count = 0
     tweets = []
     batch_size = 1
