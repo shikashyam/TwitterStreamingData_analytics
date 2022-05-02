@@ -7,7 +7,7 @@ import re
 
 PROJECT_ID = 'iconic-nimbus-348523'
 SCHEMA = 'text:STRING,created_at:STRING,tweet_id:STRING,location:STRING,user_screen_name:STRING,source:STRING,retweet_count:INTEGER,like_count:INTEGER,reply_count:INTEGER'
-
+table_spec = 'iconic-nimbus-348523:twitterstreamingdata.streamingdataset'
 
 def convert_types(data):
     """Converts string values to their appropriate type."""
@@ -42,9 +42,7 @@ if __name__ == '__main__':
 
     p = beam.Pipeline(options=PipelineOptions())
 
-    (p | 'ReadData' >> beam.io.ReadFromText('gs://beampipeline1/inputdata.csv', skip_header_lines =1)
-       | 'SplitData' >> beam.Map(lambda x: x.split(','))
-       | 'FormatToDict' >> beam.Map(lambda x: {"text": x[0], "bio": x[1], "created_at": x[2], "tweet_id": x[3], "location": x[4], "user_name": x[5], "user_screen_name": x[6], "source": x[7], "retweet_count": x[8], "like_count": x[9], "reply_count": x[10]}) 
+    (p | 'ReadTable' >> beam.io.ReadFromBigQuery(table=table_spec)
        | 'ChangeDataType' >> beam.Map(convert_types)
        | 'DeleteUnwantedData' >> beam.Map(del_unwanted_cols)
        | 'CleanUpTweets' >> beam.Map(clean_tweets)
