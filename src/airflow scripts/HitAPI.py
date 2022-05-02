@@ -9,6 +9,8 @@ import base64
 import requests
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=r"/home/airflow/gcs/data/mykey.json"
+client = pubsub_v1.PublisherClient()
+pubsub_topic = client.topic_path("iconic-nimbus-348523", "twitterstreaming")
 
 def publish(client, pubsub_topic, data_lines):
     
@@ -29,8 +31,7 @@ class TweetStreamListener(Stream):
     A listener handles tweets that are received from the stream.
     This listener dumps the tweets into a PubSub topic
     """
-    client = pubsub_v1.PublisherClient()
-    pubsub_topic = client.topic_path("iconic-nimbus-348523", "twitterstreaming")
+    
     count = 0
     tweets = []
     batch_size = 1
