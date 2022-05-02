@@ -1,5 +1,4 @@
 import googleapiclient.discovery
-from oauth2client.client import GoogleCredentials
 from google.oauth2 import service_account
 
 
