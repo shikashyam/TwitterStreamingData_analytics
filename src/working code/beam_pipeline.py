@@ -11,7 +11,23 @@ SCHEMA = 'text:STRING,created_at:STRING,tweet_id:STRING,location:STRING,user_scr
 table_spec = 'iconic-nimbus-348523:twitterstreamingdata.streamingdataset'
 
 
-def remove_emojis(data):
+
+def convert_types(data):
+    """Converts string values to their appropriate type."""
+    
+    data['retweet_count'] = int(data['retweet_count']) if 'retweet_count' in data else None
+    data['like_count'] = int(data['like_count']) if 'like_count' in data else None
+    data['reply_count'] = int(data['reply_count']) if 'reply_count' in data else None
+    
+    return data
+
+def del_unwanted_cols(data):
+    """Delete the unwanted columns"""
+    del data['bio']
+    del data['user_name']
+    return data
+
+def clean_tweets(data):
     emoj = re.compile("["
         u"\U0001F600-\U0001F64F"  # emoticons
         u"\U0001F300-\U0001F5FF"  # symbols & pictographs
@@ -32,31 +48,13 @@ def remove_emojis(data):
         u"\ufe0f"  # dingbats
         u"\u3030"
         "]+", re.UNICODE)
-    return re.sub(emoj, '', data)
 
-def convert_types(data):
-    """Converts string values to their appropriate type."""
-    
-    data['retweet_count'] = int(data['retweet_count']) if 'retweet_count' in data else None
-    data['like_count'] = int(data['like_count']) if 'like_count' in data else None
-    data['reply_count'] = int(data['reply_count']) if 'reply_count' in data else None
-    
-    return data
-
-def del_unwanted_cols(data):
-    """Delete the unwanted columns"""
-    del data['bio']
-    del data['user_name']
-    return data
-
-def clean_tweets(data):
-    
     data['text'] = data['text'].lower()
     data['text'] = re.sub(r"rt[\s]+", "", data['text']) # Remove Retweets
     data['text'] = re.sub(r"http\S+", "", data['text'])
     data['text'] = re.sub(r"www.\S+", "", data['text'])
     data['text'] = re.sub('[():#@]', ' ', data['text'])
-    data['text'] = remove_emojis(data['text'], no_emoji=True)
+    data['text'] = re.sub(emoj, '', data['text'])
     return data
 
 
