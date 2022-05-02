@@ -70,6 +70,7 @@ if __name__ == '__main__':
        | 'ChangeDataType' >> beam.Map(convert_types)
        | 'DeleteUnwantedData' >> beam.Map(del_unwanted_cols)
        | 'CleanUpTweets' >> beam.Map(clean_tweets)
+       | 'Deduplicate' >> beam.Distinct()
        | 'WriteToBigQuery' >> beam.io.WriteToBigQuery(
            '{0}:twitterstreamingdata.transformedtweets'.format(PROJECT_ID),
            schema=SCHEMA,
