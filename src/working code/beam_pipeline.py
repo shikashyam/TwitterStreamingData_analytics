@@ -4,6 +4,7 @@ import argparse
 from apache_beam.options.pipeline_options import PipelineOptions
 from sys import argv
 import re
+from cleantext import clean
 
 PROJECT_ID = 'iconic-nimbus-348523'
 SCHEMA = 'text:STRING,created_at:STRING,tweet_id:STRING,location:STRING,user_screen_name:STRING,source:STRING,retweet_count:INTEGER,like_count:INTEGER,reply_count:INTEGER'
