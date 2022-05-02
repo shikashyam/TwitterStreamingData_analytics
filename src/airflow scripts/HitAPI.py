@@ -13,7 +13,6 @@ client = pubsub_v1.PublisherClient()
 pubsub_topic = client.topic_path("iconic-nimbus-348523", "twitterstreaming")
 
 def publish(data_lines):
-    print('Publishing Now')
     messages = []
     for line in data_lines:
         messages.append({'data': line})
