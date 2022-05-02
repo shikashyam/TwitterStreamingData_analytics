@@ -65,7 +65,8 @@ if __name__ == '__main__':
 
     p = beam.Pipeline(options=PipelineOptions())
 
-    (p | 'ReadTable' >> beam.io.ReadFromBigQuery(table=table_spec)
+    (p | 'ReadTable' >> beam.io.ReadFromBigQuery(query='SELECT * FROM '\
+              '[iconic-nimbus-348523:twitterstreamingdata.streamingdataset] ORDER BY created_at DESC LIMIT 5000')
        | 'ChangeDataType' >> beam.Map(convert_types)
        | 'DeleteUnwantedData' >> beam.Map(del_unwanted_cols)
        | 'CleanUpTweets' >> beam.Map(clean_tweets)
