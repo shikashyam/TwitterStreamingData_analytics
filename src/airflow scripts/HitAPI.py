@@ -35,7 +35,7 @@ class TweetStreamListener(Stream):
     count = 0
     tweets = []
     batch_size = 1
-    total_tweets = 5000
+    total_tweets = 10000
 
     def write_to_pubsub(self, tweets):
         publish(tweets)
