@@ -13,17 +13,18 @@ client = pubsub_v1.PublisherClient()
 pubsub_topic = client.topic_path("iconic-nimbus-348523", "twitterstreaming")
 
 def publish(data_lines):
-    
+    print('Publishing Now')
     messages = []
     for line in data_lines:
         messages.append({'data': line})
     body = {'messages': messages}
-    #str_body = json.dumps(body)
-    str_body = json.dumps([line])
-    
+    str_body = json.dumps([line])    
     data = base64.urlsafe_b64encode(bytearray(str_body, 'utf8'))    
     pubsub_message = base64.urlsafe_b64decode(data).decode('utf-8')
-    client.publish(topic=pubsub_topic, data=data)
+    try:
+        client.publish(topic=pubsub_topic, data=data)
+    except:
+        print('Faced an issue while publishing')
 
 
 class TweetStreamListener(Stream):
@@ -62,7 +63,7 @@ class TweetStreamListener(Stream):
         if status.coordinates:
             longitude = status.coordinates['coordinates'][0]
             latitude = status.coordinates['coordinates'][1]
-        if (latitude!=0 & longitude!=0):
+        if ((int(latitude)!=0) & (int(longitude)!=0)):
             loc=str(latitude)+','+str(longitude)
         else:
             loc=status.user.location
