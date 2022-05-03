@@ -1,7 +1,7 @@
 from sre_constants import ANY
 from numpy import double, empty
 from sqlite3 import Date
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends,HTTPException,Body
 from pydantic import BaseModel
 from typing import Any, Optional, List
 import configparser
@@ -16,11 +16,34 @@ import matplotlib.pyplot as plt
 from nltk.corpus import stopwords 
 from io import BytesIO
 from starlette.responses import StreamingResponse
+from PIL import Image
+from auth.model import  UserSchema, UserLoginSchema
+from auth.auth_bearer import JWTBearer
+from auth.auth_handler import signJWT
+import gcsfs
+import os
+from google.cloud import bigquery
+import pandas as pd
+import chart_studio.plotly as py
+import plotly.offline as po
+import plotly.graph_objs as pg
+import matplotlib.pyplot as plt
+import itertools
+import math
+
+
+users = []
 
 app = FastAPI()
 
 class Hashtag(BaseModel):
     tag:str
+
+class User(BaseModel):
+    fullname: str
+    email: str
+    password: str
+
 
 def authorization():
     api_key = 'NP7v43PRlKcEWbH5b9fuCYnfq'
@@ -69,7 +92,6 @@ def search(tag):
     stop_words.extend(new_stopwords)
     stop_words = set(stop_words)
 
-
     text = " ".join(review for review in df.tweet_text)
     clean_text = " ".join(word for word in text.split() if word not in stop_words)
 
@@ -84,12 +106,76 @@ def search(tag):
     return df.iloc[0]
 
 
+def read_tweets():
+    credentials_path ='cloud_storage_creds.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+    client = bigquery.Client()
+    QUERY =(
+            "SELECT * FROM `iconic-nimbus-348523.twitterstreamingdata.transformedtweets` where text like '%netflix%'"
+        )
+    df = (
+        client.query(QUERY)
+        .result()
+        .to_dataframe()
+    )
+    return "jst"
+    #print(df)
 
 @app.get("/")
 def read_root():
     return {"message": "Welcome from the twitter API"}
 
+def check_user(data: UserLoginSchema):
+    fs = gcsfs.GCSFileSystem(project='My First Project', token = 'cloud_storage_creds.json')
+    credentials_path ='cloud_storage_creds.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+    client = bigquery.Client()
+    table_id = 'iconic-nimbus-348523.Users.login'
+    QUERY =(
+            "SELECT * FROM `iconic-nimbus-348523.Users.login` ;"
+        )
+    query_job = client.query(QUERY)  
+    rows = query_job.result()  
+    for row in rows:
+        
+        if data.email == row.email and data.password == row.password:
+            return True
+    return False
 
-@app.post('/search/')
+
+@app.post('/search/',dependencies=[Depends(JWTBearer())], tags=["posts"])
 async def search_hashtag(hash: Hashtag):
-    return search(hash.tag)
+    #print("inside hashtag function")
+    print(read_tweets())
+
+@app.post("/user/signup", tags=["user"])
+async def create_user(user: User):
+    users.append(user)
+    p=signJWT(user.email)
+    fs = gcsfs.GCSFileSystem(project='My First Project', token = 'cloud_storage_creds.json')
+    credentials_path ='cloud_storage_creds.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+    client = bigquery.Client()
+    table_id = 'iconic-nimbus-348523.Users.login'
+    rows_to_insert = [
+        {u'fullname':user.fullname, 
+        u'email':user.email, 
+        u'password':user.password, 
+        u'access_token':p['access_token'],
+        u'No_of_Attempts': 0},
+    ]
+    client.insert_rows_json(table_id, rows_to_insert)  
+    return p['access_token']
+
+@app.post("/user/login", tags=["user"])
+async def user_login(user: UserLoginSchema = Body(...)):
+    if check_user(user):
+        p=signJWT(user.email)
+        return {
+            'token': p['access_token']
+        }
+    return {
+        "error": "Wrong login details!"
+    }
+
+
