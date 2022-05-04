@@ -106,12 +106,14 @@ def search(tag):
     return df.iloc[0]
 
 
-def read_tweets():
+def read_tweets(tag):
     credentials_path ='cloud_storage_creds.json'
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
-    client = bigquery.Client()
+    client = bigquery.Client()         
+    #query="SELECT * FROM `iconic-nimbus-348523.twitterstreamingdata.transformedtweets` where text like %'"+tag+"'"
+    query="SELECT * FROM `iconic-nimbus-348523.twitterstreamingdata.transformedtweets` where text like %tag%"
     QUERY =(
-            "SELECT * FROM `iconic-nimbus-348523.twitterstreamingdata.transformedtweets` where text like '%netflix%'"
+            query
         )
     df = (
         client.query(QUERY)
@@ -144,9 +146,30 @@ def check_user(data: UserLoginSchema):
 
 
 @app.post('/search/',dependencies=[Depends(JWTBearer())], tags=["posts"])
-async def search_hashtag(hash: Hashtag):
-    #print("inside hashtag function")
-    print(read_tweets())
+async def search_hashtag(tag: Hashtag):
+    print("inside hashtag function")
+    #read_tweets(Hashtag.tag)
+    credentials_path ='cloud_storage_creds.json'
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+    client = bigquery.Client()         
+    tag=str(tag)
+    #query="SELECT * FROM `iconic-nimbus-348523.twitterstreamingdata.transformedtweets` where text like %'"+tag+"'"
+    #query="SELECT * FROM `iconic-nimbus-348523.twitterstreamingdata.transformedtweets` where text like %tag%"
+    query= "SELECT * FROM `iconic-nimbus-348523.twitterstreamingdata.transformedtweets` where text like '%netflix%'"
+    QUERY =(
+            query
+        )
+    df = (
+        client.query(QUERY)
+        .result()
+        .to_dataframe()
+    )
+    #return "jst"
+    df1=df.loc[df['reply_count'] == df['reply_count'].max()]
+    print(df1)
+    temp=df1.to_json()
+    #df['day']=pd.to_datetime(df['created_at']).dt.day_name()
+    return temp
 
 @app.post("/user/signup", tags=["user"])
 async def create_user(user: User):
