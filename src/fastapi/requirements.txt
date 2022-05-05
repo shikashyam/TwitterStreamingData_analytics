@@ -1,3 +1,4 @@
+anyio==3.5.0
 fastapi==0.75.0
 gcsfs==2022.2.0
 google_api_python_client==2.47.0
