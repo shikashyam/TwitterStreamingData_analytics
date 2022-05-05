@@ -104,6 +104,7 @@ def CallAPI():
     print('data stream')
     
     stream_listener = TweetStreamListener("52JbxtgpOY6fLDjsYF5n95ei3", "Zp1lr0kBSiiBQmRlzgeWjUzRcUwKuKWmUNCSvrwjWX3Yu8AR5J","1514798296753008641-QFNgqJQDOqNNToZv6L0EpDMIlzUvfg","A6UG2QAFA8P8ULZC4MiV1ueZLzfg5b2q1m2vtizzMgsAj")
+    
     stream_listener.filter(track=['elon','musk','twitter','netflix','facebook','bezos','morgan','stanley','machine','learning','AI','Bigdata'], languages=["en"])
 
 
