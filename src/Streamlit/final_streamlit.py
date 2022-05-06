@@ -56,15 +56,12 @@ def TopEntities(results):
 def display(tweet_url):
      api="https://publish.twitter.com/oembed?url={}".format(tweet_url)
      response=requests.get(api)
-     #print(response)
-     #res=response.json()
      res = response.json()["html"] 
      return res
 
 def tweet(df2):
      df3=df2.loc[df2['reply_count'] == df2['reply_count'].max()]
      print("inside tweet function")
-     #print(df3)
      print(df3['tweet_id'])
      return df3
 
@@ -74,30 +71,22 @@ def NER(inputtext):
     ner='No Event/Episode Narratives available for the Event'
     i=0
     while(i<3):
-        #print(inputtext)
         url = "https://22l4vhw043.execute-api.us-east-1.amazonaws.com/dev/qa"
 
         payload = json.dumps({"text": inputtext})
         headers = {'Content-Type': 'application/json'}
 
         response = requests.request("POST", url, headers=headers, data=payload)
-        #print("myresponse")
-        #print(response)
         if 'timed out' in response.text:
             print('timedout so I try again '+str(i))
             i=i+1
         else:
             jsonresp=response.json()
             ner=jsonresp
-            #print(ner)
             break
     return ner
 
-# with st.sidebar:
-#      selected=option_menu(
-#           menu_title="login page",
-#           options=["Login"]
-#      )
+
 
 st.sidebar.title("Login Portal")
 menu=["Login"]
@@ -110,7 +99,6 @@ if choice == "Login":
           credentials_path ='cloud_storage_creds.json'
           os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
           client = bigquery.Client()
-          #table_id = 'iconic-nimbus-348523.Users.login'
           QUERY =(
                 "SELECT email FROM `iconic-nimbus-348523.Users.login` WHERE email= '"+email+"' AND password='"+password+"';"
                )
@@ -119,22 +107,18 @@ if choice == "Login":
           a=''
           for row in rows: 
                a=(row.email)
-          # if(a):
-          #   st.success("Login credentials are authorized") 
-          # else:
-          #  st.error("Login credentials do not exist")
+
           print(a)
           if(a):
-          #   with st.spinner('Wait for it...'):
-          #      time.sleep(5)
+
                st.success("Login credentials are authorized") 
                
-               #st.success("Login credentials are authorized") 
+               
                input=  st.text_input("Enter the Hashtag")
                data={
                     "tag":input
                } 
-               #data=input
+               
                submit=st.button('Submit data')
                if "submit_state" not in st.session_state:
                     st.session_state.submit_state = False
@@ -145,39 +129,30 @@ if choice == "Login":
                          "password":password
                     }
                     res=requests.post("https://iconic-nimbus-348523.ue.r.appspot.com/user/login/", json=login)
-                    #res=requests.post("http://127.0.0.1:8000/user/login/", json=login)
-                    #try:
+
                     print(res)
                     res2=res.json()
                     
                     q='Bearer '+res2['token']
                     header = { 'Authorization': q }
                     res1=requests.post("https://iconic-nimbus-348523.ue.r.appspot.com/search/", headers={ 'Authorization': q },json=data)
-                    #res1=requests.post("http://127.0.0.1:8000/search/", headers={ 'Authorization': q },json=data)
-                    #print(res1)
                     res3=res1.json()
                     print("its res3")
-                    # print(res3)
-                    # print(type(res3))
+
                     df=pd.read_json(res3,orient='split')
                     df['Dates'] = pd.to_datetime(df['created_at']).dt.date
                     d=df.Dates.mode().iloc[0]
-                    #print(df['analysis'])
+
                     df2=tweet(df)
-                    #print(df2)
-                    #print(df['user_screen_name'].iloc[0])
+
                     url="https://twitter.com/{}/status/{}".format(str(df2['user_screen_name'].iloc[0]),str(df2['tweet_id'].iloc[0]))
                     print(url)
-                    #url="https://twitter.com/TIME/status/1521324417749594113"
-                    #st.write(res4)
-                    #option = st.selectbox('How would you like to be contacted?',('Dashboard', 'Most-Engaging-tweet', 'Mobile phone'))
-                    # Menu=["Dashboard", "Most-Engaging-tweet", "News-Articles-with-NER", 'Word-Cloud']
                     selected2 = option_menu(None, ["Dashboard", "Most-Engaging-tweet", "News-Articles-with-NER", 'Word-Cloud'], 
                     icons=['house', 'cloud-upload', "list-task", 'gear'], 
                     menu_icon="cast", default_index=0, orientation="horizontal")
                     c1,c2=st.columns(2)
                     nerresults=[]
-                    #selected2
+                    
                     if selected2=="Dashboard":
                          st.markdown("""
                     # <iframe width="900" height="1500" src="https://datastudio.google.com/embed/reporting/9a1789a5-f9fc-4117-9152-e1ed5dcbd684/page/f69rC" frameborder="0" style="border:0" allowfullscreen></iframe>
@@ -185,8 +160,6 @@ if choice == "Login":
                     elif selected2=="Most-Engaging-tweet":
                          try:
                               res4=display(url)
-                              #print(res4)
-                              #st.header("Tweet with most engagement")
                               st.header("Tweet with most engagement")
                               components.html(res4,height= 700)
                          except:
@@ -204,7 +177,7 @@ if choice == "Login":
                          for article in articles:
                               if(str(d) in str(article['publishedAt'])):
                                    c1.header(article['title'])
-                                   #st.markdown(f",<h2> Published At: {article['title']}</h2>",unsafe_allow_html=True)
+                                   
                                    c2.markdown(f",<h5> Published At: {article['publishedAt']}</h5>",unsafe_allow_html=True)
                                    if article['author']:
                                         c1.write(article['author'])
@@ -213,12 +186,11 @@ if choice == "Login":
                                         'inputtext':article['content']
                                    }
                                    res=requests.post("https://iconic-nimbus-348523.ue.r.appspot.com/search/ner/", json=data)
-                                   #res=requests.post("http://127.0.0.1:8000/search/ner/", json=data)
+                                   
                                    nerresults.append(res.json())
-                                   #st.write(res.json())
-                                   #print(NER(article['description']))
+                                   
                                    c1.write(article['description'])
-                                   #c2.write(article['content'])
+                                   
                                    c2.image(article['urlToImage'],width=400)
                                    st.text("  \n  \n  \n") 
                          TopOrg,TopPer=TopEntities(nerresults)
@@ -237,7 +209,6 @@ if choice == "Login":
                          plt.figure(figsize=(20, 20), dpi=80)
                          plt.imshow(wordCloud, interpolation = "bilinear")
                          plt.axis("off")
-                         #plt.show()
                          st.pyplot(plt)
           else:
                st.error("Login credentials do not exist")
