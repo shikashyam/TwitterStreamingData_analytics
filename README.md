@@ -18,6 +18,9 @@ Project Architecture
 ===================================
 Our project architecture is as shown below:
 
+
+![Architecture_Final](https://user-images.githubusercontent.com/91291183/167159223-8270e2a6-d305-44ab-9712-1cd983a10a74.png)
+
 Our Architecture can be divided broadly into 3 parts. 
 * First, we have the ingestion pipeline. The first step of the ingestion pipeline workflow reads the authenticated Twitter Stream using Python tweepy library and writes it to a GCP Pub/Sub topic. The Pub/Sub topic writes the tweets in real-time into a BigQuery table with the help of a cloud function that is triggered by the arrival of a message in Pub/Sub. As a second step in the workflow, we have used Apache Beam hosted on Cloud Dataflow to transform the raw data from the first bigquery table and move it to another BigQuery table as our final data store. The transformation consists of some text preprocessing for the tweets. 
 * The entire Ingestion pipeline as described above is orchestrated using Airflow to run on an hourly schedule. Since Twitter API places a limit on the number of tweets that can be streamed, we stream only the first 10000 tweets of an hour.
