@@ -1,7 +1,7 @@
-chart_studio==1.1.0
-click==7.1.2
-fastapi==0.75.0
 anyio==3.5.0
+db-dtypes==1.0.0
+pandas-gbq==0.17.4
+fastapi==0.75.0
 gcsfs==2022.2.0
 google_api_python_client==2.47.0
 google-cloud==0.34.0
@@ -22,8 +22,6 @@ setuptools==58.0.4
 starlette==0.13.6
 streamlit==1.8.1
 textblob==0.17.1
-torch==1.11.0
-transformers==4.18.0
 tweepy==3.10.0
 wordcloud==1.8.1
 uvicorn==0.17.5

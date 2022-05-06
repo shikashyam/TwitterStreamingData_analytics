@@ -1,6 +1,5 @@
 from sre_constants import ANY
 from numpy import double, empty
-from sqlite3 import Date
 from fastapi import FastAPI, Depends,HTTPException,Body
 from pydantic import BaseModel
 from typing import Any, Optional, List
@@ -23,12 +22,7 @@ import gcsfs
 import os
 from google.cloud import bigquery
 import pandas as pd
-import chart_studio.plotly as py
-import plotly.offline as po
-import plotly.graph_objs as pg
-import matplotlib.pyplot as plt
 import itertools
-import math
 import json
 import requests
 from pandas.io import gbq
