@@ -15,7 +15,6 @@ from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 from nltk.corpus import stopwords 
 from io import BytesIO
-from starlette.responses import StreamingResponse
 from PIL import Image
 from auth.model import  UserSchema, UserLoginSchema
 from auth.auth_bearer import JWTBearer
@@ -89,6 +88,13 @@ def NER(inputtext):
             break
     return ner
 
+def getval(df):
+  STATES = ['Alabama', 'AL', 'Alaska', 'AK', 'American Samoa', 'AS', 'Arizona', 'AZ', 'Arkansas', 'AR', 'California', 'CA', 'Colorado', 'CO', 'Connecticut', 'CT', 'Delaware', 'DE', 'District of Columbia', 'DC', 'Federated States of Micronesia', 'FM', 'Florida', 'FL', 'Georgia', 'GA', 'Guam', 'GU', 'Hawaii', 'HI', 'Idaho', 'ID', 'Illinois', 'IL', 'Indiana', 'IN', 'Iowa', 'IA', 'Kansas', 'KS', 'Kentucky', 'KY', 'Louisiana', 'LA', 'Maine', 'ME', 'Marshall Islands', 'MH', 'Maryland', 'MD', 'Massachusetts', 'MA', 'Michigan', 'MI', 'Minnesota', 'MN', 'Mississippi', 'MS', 'Missouri', 'MO', 'Montana', 'MT', 'Nebraska', 'NE', 'Nevada', 'NV', 'New Hampshire', 'NH', 'New Jersey', 'NJ', 'New Mexico', 'NM', 'New York', 'NY', 'North Carolina', 'NC', 'North Dakota', 'ND', 'Northern Mariana Islands', 'MP', 'Ohio', 'OH', 'Oklahoma', 'OK', 'Oregon', 'OR', 'Palau', 'PW', 'Pennsylvania', 'PA', 'Puerto Rico', 'PR', 'Rhode Island', 'RI', 'South Carolina', 'SC', 'South Dakota', 'SD', 'Tennessee', 'TN', 'Texas', 'TX', 'Utah', 'UT', 'Vermont', 'VT', 'Virgin Islands', 'VI', 'Virginia', 'VA', 'Washington', 'WA', 'West Virginia', 'WV', 'Wisconsin', 'WI', 'Wyoming', 'WY']
+  for val in STATES:
+    if val in df:
+      return val
+  return ''
+
 def ratio(x):
     print("inside ratio")
     if x > 0:
@@ -122,25 +128,10 @@ def check_user(data: UserLoginSchema):
 def modify_df(df):
     df.drop_duplicates(subset=['tweet_id'],keep='first',inplace=True)
     df[['polarity', 'subjectivity']] = df['text'].apply(lambda Text: pd.Series(TextBlob(Text).sentiment))
-    STATES = ['Alabama', 'AL', 'Alaska', 'AK', 'American Samoa', 'AS', 'Arizona', 'AZ', 'Arkansas', 'AR', 'California', 'CA', 'Colorado', 'CO', 'Connecticut', 'CT', 'Delaware', 'DE', 'District of Columbia', 'DC', 'Federated States of Micronesia', 'FM', 'Florida', 'FL', 'Georgia', 'GA', 'Guam', 'GU', 'Hawaii', 'HI', 'Idaho', 'ID', 'Illinois', 'IL', 'Indiana', 'IN', 'Iowa', 'IA', 'Kansas', 'KS', 'Kentucky', 'KY', 'Louisiana', 'LA', 'Maine', 'ME', 'Marshall Islands', 'MH', 'Maryland', 'MD', 'Massachusetts', 'MA', 'Michigan', 'MI', 'Minnesota', 'MN', 'Mississippi', 'MS', 'Missouri', 'MO', 'Montana', 'MT', 'Nebraska', 'NE', 'Nevada', 'NV', 'New Hampshire', 'NH', 'New Jersey', 'NJ', 'New Mexico', 'NM', 'New York', 'NY', 'North Carolina', 'NC', 'North Dakota', 'ND', 'Northern Mariana Islands', 'MP', 'Ohio', 'OH', 'Oklahoma', 'OK', 'Oregon', 'OR', 'Palau', 'PW', 'Pennsylvania', 'PA', 'Puerto Rico', 'PR', 'Rhode Island', 'RI', 'South Carolina', 'SC', 'South Dakota', 'SD', 'Tennessee', 'TN', 'Texas', 'TX', 'Utah', 'UT', 'Vermont', 'VT', 'Virgin Islands', 'VI', 'Virginia', 'VA', 'Washington', 'WA', 'West Virginia', 'WV', 'Wisconsin', 'WI', 'Wyoming', 'WY']
-    STATE_DICT = dict(itertools.zip_longest(*[iter(STATES)] * 2, fillvalue=""))
-    INV_STATE_DICT = dict((v,k) for k,v in STATE_DICT.items())
-    is_in_US=[]
-    geo = df[['location']]
-    df = df.fillna(" ")
-    for x in df['location']:
-        check = False
-        for s in STATES:
-            if s in x:
-                geo['state']=(STATE_DICT[s] if s in STATE_DICT else s)
-                is_in_US.append(STATE_DICT[s] if s in STATE_DICT else s)
-                check = True
-                break
-        if not check:
-            geo['state']=None
-            is_in_US.append(None)
-    geo_dist = pd.DataFrame(is_in_US, columns=['State'])
-    df1=pd.concat([df,geo_dist],axis=1)
+    df['location']=df['location'].astype(str)
+    df['State'] = df['location'].apply(getval)
+    df1=df
+    print(df1)
     return df1
 
 def write_to_bq(df):
@@ -152,10 +143,12 @@ def write_to_bq(df):
         query
     )
     client.query(QUERY)  
-    BqDatasetwithtable='iconic-nimbus-348523.visualize.dataframe_analysis'
-    BqProject='iconic-nimbus-348523'
-    df.to_gbq(BqDatasetwithtable, BqProject,if_exists='replace')
-    
+
+    bigqueryClient = bigquery.Client(project='iconic-nimbus-348523')
+    tableRef = bigqueryClient.dataset("visualize").table("dataframe_analysis")
+    bigqueryJob = bigqueryClient.load_table_from_dataframe(df, tableRef)
+    bigqueryJob.result()
+    print(df.shape)
 
 @app.post('/search/',dependencies=[Depends(JWTBearer())], tags=["posts"])
 async def search_hashtag(tag: Hashtag):
@@ -176,10 +169,7 @@ async def search_hashtag(tag: Hashtag):
     )
     print("This is DF")
     df=modify_df(df)
-    #df[['polarity', 'subjectivity']] = df['text'].apply(lambda Text: pd.Series(TextBlob(Text).sentiment))
     write_to_bq(df)
-    #df[['polarity', 'subjectivity']] = df['text'].apply(lambda Text: pd.Series(TextBlob(Text).sentiment))
-    #df['analysis'] = df['polarity'].apply(ratio)
     temp=df.to_json(orient='split',index=False)
     return temp
 
@@ -190,7 +180,6 @@ async def ner(input: res):
     i=0
     while(i<3):
         url = "https://22l4vhw043.execute-api.us-east-1.amazonaws.com/dev/qa"
-        #url="https://0gaq5aa6r2.execute-api.us-east-1.amazonaws.com/dev/qa"
         payload = json.dumps({"text": input.inputtext})
         headers = {'Content-Type': 'application/json'}
         response = requests.request("POST", url, headers=headers, data=payload)

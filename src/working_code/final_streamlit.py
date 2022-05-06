@@ -9,13 +9,37 @@ import streamlit.components.v1 as components
 import json
 import re
 import pandas as pd
+import time
 hide_menu_style = """
         <style>
         #MainMenu {visibility: hidden;}
         </style>
         """
+# st.markdown('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">', unsafe_allow_html=True)
+
+# st.markdown("""
+# <nav class="navbar fixed-top navbar-expand-lg navbar-dark" style="background-color: #3498DB;">
+#   <a class="navbar-brand" href="https://youtube.com/dataprofessor" target="_blank">Data Professor</a>
+#   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+#     <span class="navbar-toggler-icon"></span>
+#   </button>
+#   <div class="collapse navbar-collapse" id="navbarNav">
+#     <ul class="navbar-nav">
+#       <li class="nav-item active">
+#         <a class="nav-link disabled" href="#">Home <span class="sr-only">(current)</span></a>
+#       </li>
+#       <li class="nav-item">
+#         <a class="nav-link" href="https://youtube.com/dataprofessor" target="_blank">YouTube</a>
+#       </li>
+#       <li class="nav-item">
+#         <a class="nav-link" href="https://twitter.com/thedataprof" target="_blank">Twitter</a>
+#       </li>
+#     </ul>
+#   </div>
+# </nav>
+# """, unsafe_allow_html=True)
 st.markdown(hide_menu_style, unsafe_allow_html=True)
-st.sidebar.image("https://amazelaw.com/wp-content/uploads/2019/02/Best-Twitter-Advertising-Agencies-2019.png", use_column_width=True)
+st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Twitter_logo.svg/2560px-Twitter_logo.svg.png", use_column_width=True)
 st.title("Social Media analytics")
 with st.expander("About the App"):
      st.write("""
@@ -104,6 +128,7 @@ if choice == "Login":
                )
           query_job = client.query(QUERY)  
           rows = query_job.result()  
+          a=''
           for row in rows: 
                a=(row.email)
           # if(a):
@@ -112,22 +137,30 @@ if choice == "Login":
           #  st.error("Login credentials do not exist")
           print(a)
           if(a!="admin@gmail.com"):
+            with st.spinner('Wait for it...'):
+               time.sleep(5)
             st.success("Login credentials are authorized") 
+            #st.success("Login credentials are authorized") 
             input=  st.text_input("Enter the Hashtag")
             data={
                 "tag":input
                } 
             #data=input
             if st.button("submit"):
+               c1,c2=st.columns(2)
                login={
                     "email":email,
                     "password":password
                }
+               #res=requests.post("https://iconic-nimbus-348523.ue.r.appspot.com/user/login/", json=login)
                res=requests.post("http://127.0.0.1:8000/user/login/", json=login)
                #try:
+               print(res)
                res2=res.json()
+               
                q='Bearer '+res2['token']
                header = { 'Authorization': q }
+               #res1=requests.post("https://iconic-nimbus-348523.ue.r.appspot.com/search/", headers={ 'Authorization': q },json=data)
                res1=requests.post("http://127.0.0.1:8000/search/", headers={ 'Authorization': q },json=data)
                #print(res1)
                res3=res1.json()
@@ -146,6 +179,8 @@ if choice == "Login":
                try:
                     res4=display(url)
                     #print(res4)
+                    #st.header("Tweet with most engagement")
+                    c1.header("Tweet with most engagement")
                     components.html(res4,height= 700)
                except:
                     st.write(str(df2['text'].iloc[0]))
@@ -169,21 +204,23 @@ if choice == "Login":
                r=r.json()
                articles=r['articles']
                for article in articles[:10]:
-                    st.header(article['title'])
-                    st.markdown(f",<h5> Published At: {article['publishedAt']}</h5>",unsafe_allow_html=True)
+                    c2.header(article['title'])
+                    #st.markdown(f",<h2> Published At: {article['title']}</h2>",unsafe_allow_html=True)
+                    c2.markdown(f",<h5> Published At: {article['publishedAt']}</h5>",unsafe_allow_html=True)
                     if article['author']:
-                         st.write(article['author'])
+                         c2.write(article['author'])
                     st.write(article['source']['name'])
                     data={
                          'inputtext':article['content']
                     }
+                    #res=requests.post("https://iconic-nimbus-348523.ue.r.appspot.com/search/ner/", json=data)
                     res=requests.post("http://127.0.0.1:8000/search/ner/", json=data)
                     nerresults.append(res.json())
-                    st.write(res.json())
+                    #st.write(res.json())
                     #print(NER(article['description']))
-                    st.write(article['description'])
-                    st.write(article['content'])
-                    st.image(article['urlToImage'])
+                    c2.write(article['description'])
+                    c2.write(article['content'])
+                    c2.image(article['urlToImage'])
                
                TopOrg,TopPer=TopEntities(nerresults)
                if TopOrg!='None':
