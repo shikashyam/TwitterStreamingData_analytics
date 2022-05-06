@@ -165,6 +165,11 @@ To generate report of the coverage test, execute:
 ```
 coverage report -m
 ```
+Sample Dashboard
+===================================
+Below is a sample of our dashboard.
+<img width="363" alt="Screen Shot 2022-05-06 at 11 00 37 AM" src="https://user-images.githubusercontent.com/91291183/167159546-f175e11d-f372-4626-8c42-953bbe16f242.png">
+
 
 Project Organization
 ------------
