@@ -21,7 +21,7 @@ hide_menu_style = """
         </style>
         """
 st.markdown(hide_menu_style, unsafe_allow_html=True)
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Twitter_logo.svg/2560px-Twitter_logo.svg.png", use_column_width=True)
+st.sidebar.image("https://raw.githubusercontent.com/shikashyam/TitanicSurvivalPrediction/main/image2vector.svg", use_column_width=True)
 st.title("Social Media Campaign Analytics")
 with st.expander("About the App"):
      st.write("""
@@ -172,11 +172,11 @@ if choice == "Login":
                     #st.write(res4)
                     #option = st.selectbox('How would you like to be contacted?',('Dashboard', 'Most-Engaging-tweet', 'Mobile phone'))
                     # Menu=["Dashboard", "Most-Engaging-tweet", "News-Articles-with-NER", 'Word-Cloud']
-                    c1,c2=st.columns(2)
-                    nerresults=[]
                     selected2 = option_menu(None, ["Dashboard", "Most-Engaging-tweet", "News-Articles-with-NER", 'Word-Cloud'], 
                     icons=['house', 'cloud-upload', "list-task", 'gear'], 
                     menu_icon="cast", default_index=0, orientation="horizontal")
+                    c1,c2=st.columns(2)
+                    nerresults=[]
                     #selected2
                     if selected2=="Dashboard":
                          st.markdown("""
